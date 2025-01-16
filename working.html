@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sharing Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .security-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+
+        .security-popup {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-container {
+            margin-top: 100px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input[type="password"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
+            margin: 10px 0;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="security-container" class="security-container">
+        <div class="security-popup" id="security-popup">
+            <h2>Enter Security Pin</h2>
+            <input type="password" id="pin-input" placeholder="Enter PIN">
+            <button onclick="checkPin()">Submit</button>
+        </div>
+    </div>
+
+    <div id="upload-container" class="upload-container">
+        <h1>Upload File</h1>
+        <input type="file" id="file-input" />
+        <button onclick="uploadFile()">Upload</button>
+        <p id="status"></p>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6jBZpJAVCR86jfOJi02UwMIABFWSOgkw",
+            authDomain: "online-filemanager.firebaseapp.com",
+            projectId: "online-filemanager",
+            storageBucket: "online-filemanager.appspot.com",
+            messagingSenderId: "31774550495",
+            appId: "1:31774550495:web:85f6a0c068d11edb2f3c6a",
+            measurementId: "G-YHTELEP8JH"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Firebase Storage Reference
+        const storage = firebase.storage();
+        const storageRef = storage.ref();
+
+        // Show the security popup
+        function showSecurityPopup() {
+            document.getElementById('security-container').style.display = 'flex';
+        }
+
+        // Check the entered PIN
+        function checkPin() {
+            const pinInput = document.getElementById('pin-input').value;
+            const correctPin = '1234'; // Pre-set pin
+
+            if (pinInput === correctPin) {
+                document.getElementById('security-container').style.display = 'none';
+                document.getElementById('upload-container').style.display = 'block'; // Show upload container
+            } else {
+                alert('Incorrect PIN!');
+            }
+        }
+
+        // Handle file upload
+        function uploadFile() {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                document.getElementById('status').textContent = 'No file selected!';
+                return;
+            }
+
+            const fileRef = storageRef.child('uploads/' + file.name);
+            const uploadTask = fileRef.put(file);
+
+            uploadTask.on('state_changed', (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                document.getElementById('status').textContent = `Upload is ${progress.toFixed(2)}% done`;
+            }, (error) => {
+                document.getElementById('status').textContent = 'Upload failed: ' + error.message;
+            }, () => {
+                document.getElementById('status').textContent = 'Upload complete!';
+            });
+        }
+
+        // Initialize the page with the security popup
+        showSecurityPopup();
+    </script>
+
+</body>
+</html>
